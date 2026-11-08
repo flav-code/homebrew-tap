@@ -1,0 +1,32 @@
+# Follows Asterism's releases: when a newer one is out, the cask gets its version and checksums (GitHub publishes
+# each file's SHA-256, so nothing is downloaded here).
+# shortcut: a schedule, since a push from the asterism repo would need a token there; GitHub pauses schedules in a
+# repo with no commit for 60 days, so after a long pause between releases, re-enable it in the Actions tab.
+name: Update
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rel=$(gh api repos/flav-code/asterism/releases/latest)
+          v=$(jq -r .tag_name <<<"$rel" | sed 's/^v//')
+          sum() { jq -r --arg s "$1" '.assets[] | select(.name | endswith($s)) | .digest // empty' <<<"$rel" | sed 's/^sha256://'; }
+          arm=$(sum -macos-arm64.dmg) intel=$(sum -macos-x64.dmg)
+          if [ -z "$arm" ] || [ -z "$intel" ]; then echo "$v has no macOS images"; exit 0; fi
+          sed -i -E "s/^  version \".*\"/  version \"$v\"/; s/(sha256 arm: +)\"[0-9a-f]+\"/\1\"$arm\"/; s/(intel: +)\"[0-9a-f]+\"/\1\"$intel\"/" Casks/asterism.rb
+          git diff --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "asterism $v" && git push
