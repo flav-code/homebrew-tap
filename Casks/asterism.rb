@@ -1,9 +1,9 @@
 cask "asterism" do
   arch arm: "arm64", intel: "x64"
 
-  version "0.1.12"
-  sha256 arm:   "328b67477e7985113b9bf9480e115c89dd4d208ed391947352200c417d51e81a",
-         intel: "81a50b7ef18b12a5f024f2f9e5a7c77393d7559fdf028dcba6094adfd8c0450a"
+  version "0.1.13"
+  sha256 arm:   "22f3550e034209d86597d22be5441f35eecdebaca9fdab72644ba9aa8807e5f7",
+         intel: "a0a03fed4884baa675e7d8e4e41fbc167d312486f771223c309080c047148327"
 
   url "https://github.com/flav-code/asterism/releases/download/v#{version}/Asterism-#{version}-macos-#{arch}.dmg"
   name "Asterism"
